@@ -1,7 +1,7 @@
 const express=require('express')
 const cors =require('cors')
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
 const port=process.env.PORT || 4000;
@@ -12,7 +12,8 @@ app.use(express.json())
 
 
 
-const uri = "mongodb+srv://UserMaster:master22@cluster0.iy6spfv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const uri = "mongodb://127.0.0.1:27017"
+// const uri = "mongodb+srv://UserMaster:master22@cluster0.iy6spfv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -43,6 +44,36 @@ async function run() {
     app.get('/users', async(req,res)=>{
         const cursor=userCollection.find()
         const result=await cursor.toArray();
+        res.send(result)
+    })
+
+    //delete a user
+    app.delete('/users/:id',async(req,res)=>{
+        const id=req.params.id;
+        const query={_id: new ObjectId(id)}
+        const result=await userCollection.deleteOne(query);
+        res.send(result)
+        
+    })
+
+    //update a user
+    app.get('/users/:id',async(req,res)=>{
+        const id=req.params.id;
+        const query={_id: new ObjectId(id)}
+        const result=await userCollection.findOne(query);
+        res.send(result)
+    })
+
+    app.put('/users/:id',async(req,res)=>{
+        const id=req.params.id;
+        const filter={_id: new ObjectId(id)}
+        const options={upsert: true};
+        const updatedUser=req.body;
+        const updatedDoc={
+            $set:updatedUser
+        }
+
+        const result=await userCollection.updateOne(filter, updatedDoc, options)
         res.send(result)
     })
 
